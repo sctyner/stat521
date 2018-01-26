@@ -86,7 +86,7 @@ knitr::kable(df)
 3. *What is the expected sample size?*
 4. *What is the population total, $t_y$ for this population*
 5. *Compute the HT estimator of $t_y$ for each of the four samples in the table above. Then, verify that $\hat{t}_{HT}$ is an unbiased estimator of $t_y$.*
-6. *Compute the HT variance estimator for each of the four samples in the table above. Then, verify that $\hat{V}(\hat{t}_{HT})$ is an unbiased estimator of $V(\hat{t}_{HT})$.*
+6. *Compute the HT variance estimator for each of the four samples in the table above. Then, verify that $\tilde{V}(\hat{t}_{HT})$ is an unbiased estimator of $V(\hat{t}_{HT})$.*
 7. *Now consider estimating the proportion of the population with a value greater than or equal to 5. What is the population proportion? Using the sample in the first row of the table above, give the $HT$ estimator of the proportion and a corresponding standard error.*
 8. *Do you notice anything peculiar about the HT estimate for sample 4? Why/why not? For this design, can you define a different estimator of the total of $y$ that is unbiased for $t_y$ and has a smaller variance than the $HT$ estimator.*
 
@@ -115,43 +115,58 @@ pi_y <- c(.8,.7,.6)
 # pairs, 2-way inclusion probs
 pi_kl <- data_frame(k = c(1,1,2,1,2,3, 2,3,3), 
                     l = c(2,3,3,1,2,3, 1,1,2), 
-                    pi_kl = c(.5, .4, .3, .8,.7,.6,.5, .4, .3))
+                    pi_kl = c(.5, .4, .3, pi_y, .5, .4, .3))
+my_PI <- pi_kl %>% spread(l, pi_kl) %>% select(-k) %>% as.matrix()
 # Compute V(t_ht) for U = {1,2,3}
+# 1. Create 3 x 3 delta_{kl} matrix
 Delta <- matrix(0, nrow = 3, ncol = 3)
 for(i in 1:3){
   for(j in 1:3){
-      Delta[i,j] <- filter(pi_kl, k == i, l == j)$pi_kl - pi_y[i]* pi_y[j]
+      Delta[i,j] <- my_PI[i,j] - (my_PI[i,i] * my_PI[j,j])
     }
-  }
+}
+# 2. Create 3 x 3 \check{y}_k * \check{y}_l matrix
 Check_y <- (y/pi_y) %*% t((y/pi_y))
+# 3. Perform summation
 v_ht <- sum(colSums(Delta * Check_y))
 v_ht
 ```
-Next, I compute the value of the estimator, $\hat{V}(\hat{t}_{HT})$, for each of the four samples. 
+Next, I compute the value of the estimator, $\tilde{V}(\hat{Y}_{HT})$, for each of the four samples. See Table 3.  
 ```{r, echo=TRUE, tidy=TRUE}
 # samples, pr(A)s
 samps <- data_frame(A = list(c(1,2), c(1,3), c(2,3), c(1,2,3)), 
                     PrA = c(.4, .3, .2, .1))
 # Compute estimator for each 
-v_ht_hat <- function(samp, dat = y, piy = pi_y, pikl = pi_kl) {
+v_ht_hat <- function(samp, dat = y, pikl = my_PI) {
   n <- length(samp)
+  # 1. Create n x n delta_{kl} matrix
   Check_delta <- matrix(0, nrow = n, ncol = n)
   for(i in 1:n){
     for(j in 1:n){
-      pkl <- filter(pikl, k == i, l == j)$pi_kl
-      Check_delta[i,j] <- (pkl - piy[i]* piy[j]) / pkl
+      k <- samp[i]
+      l <- samp[j]
+      Check_delta[i,j] <- (pikl[k,l] - pikl[k,k]* pikl[l,l]) / pikl[k,l]
     }
   }
+  # 2. Create n x n \check{y}_k*\check{y}_l matrix
   y_s <- dat[samp]
-  piy_s <- piy[samp] 
+  piy_s <- diag(pikl)[samp] 
   check_y <- (y_s/piy_s) %*% t((y_s/piy_s))
+  # 3. Perform summation
   est_v_ht <- sum(colSums(Check_delta * check_y))
   return(est_v_ht)
 }
+# apply variance computation to all samples, compute expected value
 samps2 <- samps %>% mutate(V_ht_est = map_dbl(A, v_ht_hat), 
                  EV = PrA * V_ht_est)
+# expected value of the variance estimate
 samps2$EV %>% sum
 ```
+```{r echo=FALSE, results='asis'}
+knitr::kable(samps2, digits = 4, col.names = c("A", "Pr(A)", "\\(\\tilde{V}[\\hat{t}_{HT}]\\)", "Pr(A) x \\(\\tilde{V}[\\hat{t}_{HT}]\\)"), caption = "The estimate of the variance of the HT estimate in each sample. The last colum is summed to show that the expectation of $\\tilde{V}(\\hat{Y}_{HT})$ is equal to the true value of $V(\\hat{Y}_{HT})$ computed above.")
+```
+
+The computed values above for $V(\hat{Y}_{HT})$ and $\tilde{V}(\hat{Y}_{HT})$ are equal, showing that $\tilde{V}(\hat{Y}_{HT})$ is an unbiased estimator for $V(\hat{Y}_{HT})$. 
 
 7. Let $U_d = \{i : i \geq 5\}$, $U_d \subset U$. Then, $p_U = \frac{1}{3} \sum_{i=1}^3 \mathbb{I}(i \in U_d) = \frac{2}{3}$.  
 8. It is peculiar that we've taken a census, and thus have all possible information about $t_y$, but our estimate is nearly 50% greater than the true value.  
