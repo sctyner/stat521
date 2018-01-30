@@ -45,15 +45,15 @@ Let $\check{y}_k = \dfrac{y_k}{\pi_k}$ for $k = 1, \dots , n$, where $n$ is a fi
 $$V(\hat{Y}_{HT}) = \sum_{k\in U} \sum_{l\in U} \Delta_{kl} \check{y_k} \check{y_l} =  -\frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl}\left(\check{y}_k - \check{y}_l \right)^2.$$ 
 
 \begin{proof}
-  \begin{align}
+  \begin{align*}
   V(\hat{Y}_{HT}) & =  -\frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl}\left(\check{y}_k - \check{y}_l \right)^2 \\
     & = -\frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl}\left(\check{y}^2_k -2 \check{y}_k\check{y}_l+ \check{y}_l^2 \right) \\
     & = -\frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl}\check{y}_k^2 +
     \frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl} 2\check{y}_k\check{y}_l - \frac{1}{2}\sum_{k\in U} \sum_{l\in U} \Delta_{kl} \check{y}^2_l \\
     & = \sum_{k\in U} \sum_{l\in U} \Delta_{kl} \check{y}_k\check{y}_l - \sum_{k\in U} \sum_{l\in U} \Delta_{kl}\check{y}_k^2
-  \end{align}
+  \end{align*}
 We will now show that the second term above, $\sum\limits_{k\in U} \sum\limits_{l\in U} \Delta_{kl}\check{y}_k^2$, is equal to 0, and thus the proof is complete. 
-  \begin{align}
+  \begin{align*}
   \sum_{k\in U} \sum_{l\in U} \Delta_{kl}\check{y}_k^2 & = \sum_{k \in U} \check{y}_k^2 \sum_{l \in U} \Delta_{kl}\\
     & = \sum_{k \in U} \check{y}_k^2 \sum_{l \in U} (\pi_{kl} - \pi_k \pi_l) \\ 
     & = \sum_{k \in U} \check{y}_k^2 \left[ \sum_{l \in U} \pi_{kl} - \sum_{l \in U} \pi_{k}\pi_l \right] \\
@@ -61,7 +61,7 @@ We will now show that the second term above, $\sum\limits_{k\in U} \sum\limits_{
     & = \sum_{k \in U} \check{y}_k^2 \left[ \sum_{l \in U, k\neq l} \pi_{kl} + \pi_{kk} - \pi_{k} n \right] \quad (\textit{$n$ fixed, definition of $E[n_s]$}) \\
     & = \sum_{k \in U} \check{y}_k^2 \left[ \pi_k n - \pi_k + \pi_{k} - \pi_{k} n \right] \quad (\textit{definition $\pi_{kk}$, result 2.6.2 in SSW}) \\
     & = 0.
-  \end{align}
+  \end{align*}
 \end{proof}
 
 Next, let $\check{\Delta}_{kl} = \dfrac{\Delta_{kl}}{\pi_{kl}}$. To show that the unbiased estimator of $V(\hat{Y}_{HT})$, $\tilde{V}(\hat{Y}_{HT})$, can be written as 
@@ -168,28 +168,85 @@ knitr::kable(samps2, digits = 4, col.names = c("A", "Pr(A)", "\\(\\tilde{V}[\\ha
 
 The computed values above for $V(\hat{Y}_{HT})$ and $\tilde{V}(\hat{Y}_{HT})$ are equal, showing that $\tilde{V}(\hat{Y}_{HT})$ is an unbiased estimator for $V(\hat{Y}_{HT})$. 
 
-7. Let $U_d = \{i : i \geq 5\}$, $U_d \subset U$. Then, $p_U = \frac{1}{3} \sum_{i=1}^3 \mathbb{I}(i \in U_d) = \frac{2}{3}$.  
-8. It is peculiar that we've taken a census, and thus have all possible information about $t_y$, but our estimate is nearly 50% greater than the true value.  
-
-```{r, echo=FALSE, eval=FALSE}
-dat <- data_frame(u = 1:3, y = c(5,3,7), pi = c(.8, .7, .6), rat = y/pi)
-sum(dat$rat[1:2])
-sum(dat$rat[c(1,3)])
-sum(dat$rat[2:3])
-sum(dat$rat)
-
+7. Let $U_d = \{i : i \geq 5\}$, $U_d \subset U$. Then, $p_U = \frac{1}{3} \sum_{i=1}^3 \mathbb{I}(i \in U_d) = \frac{2}{3}$.  Let $A = \{1,2\}$, and let $z_i = \mathbb{I}(y_i \geq 5)$. The HT estimator of $p_U$ is defined as $\hat{p}_{HT} = N^{-1}\sum_{k \in A} \frac{z_k}{\pi_k}$. For the sample $A$, $$\hat{p}_{HT} = \frac{1}{3} \cdot \left(\frac{1}{.8} + \frac{0}{.7}\right) = \frac{5}{12} \approx 0.417$$.  
+The variance estimate of $\hat{p}_{HT}$ is 
+$$\tilde{V}(\hat{p}_{HT}) = N^{-2} \tilde{V}(\hat{t}^z_{HT}))$$
+where $\tilde{V}(\hat{t}^z_{HT}))$ is the variance estimate of the HT estimate of the sum of the $z_i$ values. Using the function `v_ht_hat()` from question 3.6, the variance of the estimate $\hat{p}_{HT}$ is 
+```{r echo=TRUE, tidy=TRUE}
+var_p_est <- 3^(-2) * v_ht_hat(samp = samps$A[[1]], dat = (y >=5))
+var_p_est
 ```
+So, the standard error of $\hat{p}_{HT}$ is $\sqrt{\tilde{V}(\hat{p}_{HT})} = \sqrt{`r round(var_p_est,4)`} = `r round(sqrt(var_p_est), 4)`$.   
+8. It is peculiar that we've taken a census, and thus have all possible information about $t_y$, but our estimate is nearly 50% greater than the true value.  My estimator, $\hat{t}_{Sam}$ is defined below. 
+
+ \[\hat{t}_{Sam} = \begin{cases} 
+      \sum_{k\in A} y_k & \text{if } |A| = 3 \\
+      \frac{135}{88} \sum_{k\in A} y_k & \text{if } |A| < 3
+   \end{cases}
+\]
+
+I constructed this estimator to be unbiased. Its variance is 6.305, less than the variance of $\hat{t}_{HT}$
 
 ## Problem 4
 
 *Consider a simple random sample without replacement $S$ of size $n$ from a finite population $U$ of size $N$, and two distinct individuals $k$ and $l$.*
 
 1. *Compute $Pr(k \in S , l \notin S)$.*
-2. *Suppose we select a further subsample $S_1$ from $S$ by simple random sampling of size $n_1$. Let $S_2$ be the complementary sample of $S_1$ in $S$. Thus $S_1 \cup S_2 = S$ and $S_1 \cap S_2 = \emptyset$. Let $k$ and $l$ be any two distinct individuals belonging to the sample $S$. Compute $Pr(k \in S_1 and l \in S_2)$.*
-3. *Let $I_{k1} = \mathbb{I}(k \in S_1)$ and $I_{k2} = \mathbb{I}(k \in S_2)$, where $\mathbb{I}(A)$ represents the indicator for event A. Compute $Cov(I_{k1}, I_{k2}).$*
+2. *Suppose we select a further subsample $S_1$ from $S$ by simple random sampling of size $n_1$. Let $S_2$ be the complementary sample of $S_1$ in $S$. Thus $S_1 \cup S_2 = S$ and $S_1 \cap S_2 = \emptyset$. Let $k$ and $l$ be any two distinct individuals belonging to the sample $S$. Compute $Pr(k \in S_1 \quad and \quad l \in S_2)$.*
+3. *Let $I_{k1} = \mathbb{I}(k \in S_1)$ and $I_{k2} = \mathbb{I}(k \in S_2)$, where $\mathbb{I}(A)$ represents the indicator for event A. Compute $Cov(I_{k1}, I_{l2}).$*
 4. *Let $\bar{y}_i$ be the simple mean of $y$ in the sample $S_i$. Also, let $\bar{y}$ be the sample mean of $y$ in the sample $S$. Thus, $n\bar{y} = n_1\bar{y}_1 + n_2\bar{y}_2$ with $n_2 = n - n_1$. Prove that $Cov(\bar{y}_1, \bar{y}_2) = -\frac{S^2_y}{N}$ where $S^2_y = \sum_{i = 1}^N \frac{(y_i - \bar{Y}_N)^2}{N-1}$. *
 5. *Under the above setup, compute $Cov(\bar{y}, \bar{y}_1 - \bar{y})$ and the mean and variance of $\bar{y}_1$.*
 
 **Solution:**
 
 1. $Pr(k \in S , l \notin S) = \dfrac{\binom{N-2}{n-1}}{\binom{N}{n}} = \dfrac{n(N-n)}{N(N-1)}$.
+2. Given $k, l \in S$, $Pr(k \in S_1 , l \in S_2) = \dfrac{\binom{n-2}{n_1-1}}{\binom{n}{n_1}} = \dfrac{n_1(n-n_1)}{n(n-1)}$. 
+
+For any two $k,l \in U$, $$Pr(k \in S_1 , l \in S_2) = Pr(k \in S_1 , l \in S_2| k, l \in S) \cdot Pr(k,l \in S) = \dfrac{n_1(n-n_1)}{n(n-1)} \cdot \dfrac{n(n-1)}{N(N-1)} = \dfrac{n_1(n-n_1)}{N(N-1)}$$
+
+3. For any two elements, $k \neq l \in U$:
+\begin{align*}
+Cov(I_{k1}, I_{l2}) & = E[I_{k1}I_{l2}] - E[I_{k1}]E[I_{l2}] \\
+  & = Pr(k \in S_1, l \in S_2) - Pr(k \in S_1)Pr(l \in S_2) \\
+  & = \frac{n_1(n-n_1)}{N(N-1)} - \frac{n_1}{N}\cdot \frac{n_2}{N} \quad (\textit{from 4.2})\\
+  & = \frac{n_1 n_2}{N(N-1)} - \frac{n_1n_2}{N^2} \\ 
+  & = \frac{N n_1 n_2 - n_1n_2(N-1)}{N^2(N-1)} \\
+  & = \frac{n_1 n_2}{N^2(N-1)}
+\end{align*}
+If $k = l$ then 
+\begin{align*}
+Cov(I_{k1}, I_{l2}) & = Pr(k \in S_1, l \in S_2) - Pr(k \in S_1)Pr(l \in S_2) \\ 
+& = 0 - \frac{n_1n_2}{N^2} \\ 
+& = -\frac{n_1n_2}{N^2}
+\end{align*}
+
+4. For any two elements $k,l \in U$: 
+\begin{align*}
+Cov(\bar{y}_1, \bar{y}_2) & = Cov(\bar{y}_1 - \bar{Y}_N, \bar{y}_2  - \bar{Y}_N ) \\
+  & = Cov\left(\frac{1}{n_1} \sum_{k \in U} y_k I_{k1} \quad - \bar{Y}_N , \frac{1}{n_2} \sum_{l \in U} y_l I_{l2} \quad - \bar{Y}_N \right) \\
+  & = \frac{1}{n_1n_2} \sum_{k\in U} \sum_{l \in U} (y_k -\bar{Y}_N)(y_l -  \bar{Y}_N) \cdot Cov(I_{k1}, I_{l2}) \\
+  & = \frac{1}{N^2(N-1)} \sum_{k \neq l \in U} \sum_{l = 1}^N (y_k -\bar{Y}_N)(y_l -  \bar{Y}_N) - \frac{1}{N^2} \sum_{k = l \in U} (y_k -\bar{Y}_N)(y_l -  \bar{Y}_N) \\ 
+  & = -\frac{1}{N^2(N-1)} \sum_{k = 1}^N (y_k - \bar{Y}_N)^2 - \frac{1}{N^2}\sum_{k = 1}^N (y_k - \bar{Y}_N)^2  \quad (\textit{see Note below})\\
+  & = - \frac{1}{N(N-1)}\sum_{k = 1}^N (y_k - \bar{Y}_N)^2 \\
+  & = -\frac{S^2_y}{N}
+\end{align*} 
+
+*Note:* 
+
+\begin{align*}
+\sum_{k \neq l \in U} \sum_{l = 1}^N (y_k -\bar{Y}_N)(y_l -  \bar{Y}_N) & = \sum_{k = 1}^N \sum_{l = 1}^N (y_k -\bar{Y}_N)(y_l -  \bar{Y}_N) - \sum_{k=1}^N (y_k -\bar{Y}_N)^2 \\ 
+  & = \sum_{k = 1}^N  (y_k -\bar{Y}_N) \sum_{l = 1}^N(y_l -  \bar{Y}_N) - \sum_{k=1}^N (y_k -\bar{Y}_N)^2 \\ 
+  & = 0  - \sum_{k=1}^N (y_k -\bar{Y}_N)^2 \\ 
+  & = - \sum_{k=1}^N (y_k -\bar{Y}_N)^2
+\end{align*}
+
+5. $E[\bar{y}_1] = \frac{1}{n_1} \sum_{k \in U} y_k E[I_{k1}] = \frac{1}{n_1} \frac{n_1}{N} \sum_{k \in U} y_k = \bar{Y}_N$
+
+Using the fact that $Var(\bar{y}_n) = \frac{1}{n} (1 -\frac{n}{N})S^2_y$, we have $Var(\bar{y}_1) = \frac{1}{n_1} (1 - \frac{n_1}{N}) S^2_y$. 
+
+\begin{align*}
+Cov(\bar{y}, \bar{y}_1 - \bar{y}) & = E(\bar{y}\bar{y}_1- \bar{y}^2) - E(\bar{y}) E(\bar{y_1} - \bar{y}) \\ 
+  & = E(\bar{y}\bar{y}_1) - E( \bar{y}^2) - 0 \\
+  & = E(\bar{y}^2) - E(\bar{y}^2) \\ 
+  & = 0
+\end{align*}
