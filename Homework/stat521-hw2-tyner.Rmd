@@ -27,6 +27,20 @@ knitr::opts_chunk$set(echo = TRUE)
 5. *Suppose he also wants to estimate the total number of counties with at least 1000 farms. What are the estimate and the estimated variance of the estimator?*
 6. *If he wants the sample proportion to be within $\pm 0.02$ of the population proportion with 95% confidence, how many more counties should he include into his sample to meet this requirement?*
 
+**Solution:**
+
+1. For $Y_k$, the number of acres devoted to farming in county $k$, $k = 1, 2, \dots, 3141$, the population parameter of interest, the mean number of acres per county devoted to farming is $\bar{Y}_N$ where $N = 3141$ here. 
+2. $$\bar{y}_{HT} = \frac{1}{N} \hat{t}_{HT} = \frac{1}{N} \sum_{k \in A}  \frac{y_k}{\pi_k} = \frac{1}{3141} \sum_{k \in A} y_k \frac{3141}{100} = \frac{1}{100} \sum_{k \in A} y_k = \frac{1}{100} n \bar{y}_n = 275$$ 
+$$\hat{V}(\bar{y}_HT)=\frac{1}{N^2} \hat{V}(\hat{t}_{HT}) = \frac{1}{N^2} \left( N^2 (1 - \frac{n}{N}) \cdot \frac{S_n^2}{n} \right) = (1 - \frac{100}{3141}) \frac{30^2}{100} \approx 8.713 $$
+3. 95% confidence interval: $\bar{y}_{HT} \pm 1.96\sqrt{\hat{V}(\bar{y}_{HT})} = 275\pm 1.96 \cdot \sqrt{8.713} = (269.214, 280.786)$
+4. For the proportion scenario, define $z_k$ as the number of farms in county $k$ and let $r_k = \mathbb{I}(z_k \geq 1000)$. The population parameter of interest is $\bar{r}_U = \sum_{k = 1}^N r_k$. Let $\hat{t}_{r, HT}$ denote the HT-estimator of the population total of $r_k$. Then, the HT estimate of $\bar{r}_U$ is 
+$$\bar{r}_n = \frac{1}{N} \hat{t}_{r, HT} = \frac{1}{N} \sum_{k \in A} \frac{r_k}{\pi_k} = \frac{1}{3141} \sum_{k \in A} r_k \cdot \frac{3141}{100} = 0.17$$
+Then, the estimated variance of $\bar{r}_n$ is 
+$$\hat{V}(\bar{r}_n) = (1 - \frac{n}{N}) \frac{\bar{r}_n(1-\bar{r}_n)}{n} = (1 - \frac{100}{3141}) \frac{0.17\cdot(1-0.17)}{100} = 0.00138$$
+5. From problem 4, we have $\hat{t}_{r,HT} = \sum_{k \in A} r_k \cdot \frac{3141}{100} = \frac{17\cdot 3141}{100} = 533.97$. Next, $\hat{V}(\hat{t}_{r, HT}) = N^2 (1 - \frac{n}{N}) \frac{\bar{r}_n(1-\bar{r}_n)}{n-1} = 3141^2 (1- \frac{100}{3141}) \frac{0.143}{99} = 3141^2 \cdot 0.00138 \approx 13615$
+6. Using the sample size for SI design calculation, (slide 12, chapter 3 of lecture notes), $n = \dfrac{(1.96)^2 \cdot s_r^2}{e^2 + (1.96)^2 \cdot s_r^2 / N} =  \dfrac{(1.96)^2 \cdot 0.143}{(0.02)^2 + (1.96)^2 \cdot 0.143 / 3141} = 955.56 \approx 956$, so the researcher should survey 856 more counties.  
+
+
 ## Problem 2
 
 *A state senate candidate wants to conduct a household survey to estimate how many bumper stickers she needs for her supporters in one particular district. A sample of 5 households from all 100 households in this district is selected using probability proportional to size (PPS) sampling, where the size measure (or auxiliary variable) is the number of registered voters in the household. There are a total of 167 registered voters in this district. Each household in the sample is asked how many bumper stickers the household needs. The data from the survey are presented in Table 1.*
@@ -41,8 +55,23 @@ knitr::kable(tab1, row.names = F, caption = "Bumper Sticker Survey")
 1. *What are the inclusion probabilities for these five selected households under this PPS design?*
 2. *Estimate the total number of bumper stickers needed for this district using the Hansen-Hurwitz estimator and give an estimate of the variance.*
 
-## Problem 3
+**Solution:**
 
+1. The probability of inclusion formula is $\pi_i = 1 - (1- p_i)^m$, where $m=5$, $i = 1, \dots, 5$. $p_i = \frac{x_i}{\sum_{i=1}^N x_i}$. The inclusion probabilities are computed in the table below, in column `pi_i`. 
+
+```{r tab31, echo=FALSE}
+tab31 <- data.frame(i = 1:5, x_i = c(3,3,2,1,1), p_i = c(3/167, 3/167, 2/167, 1/167, 1/167), 
+           pi_i = c(0.0867, 0.0867, 0.0585, 0.0246, 0.0246))
+tab31$z_i <- c(167, 0, 167.2, 0, 0)
+knitr::kable(tab31, row.names = F, caption = "Solutions to Question 3.1")
+```
+
+2. $\hat{t}_{hh} = \frac{1}{m} \sum_{i = 1}^m Z_i$, where $Z_i = \frac{y_i}{p_i}$. Values of $Z_i$ are shown in the table above. For this problem, $\hat{t}_{hh} = \frac{1}{5}(\frac{3}{3/167} + 0 + \frac{1}{2/167} + 0 + 0) = 50.1$.
+$\hat{V}(\hat{t}_{hh}) = \frac{1}{m(m-1)} \sum_{i = 1}^m (z_i - \hat{t}_{hh})^2 = 1115.56$.
+
+\clearpage
+
+## Problem 3
 
 *A stratified random sample is to be drawn from a population which has three strata using STSI
 design. We are interested in estimating the population total using the $\pi$-estimator under this design. A total of \$1500 is available for the survey. The cost function is $C = C_0 + \sum_{h=1}^3 C_h n_h$ , where the fixed cost, $C_0$ is \$250. We assume we know the population sizes for each stratum ($N_h$), the population variance for each stratum ($S^2_{hu}$) and the cost of each individual units in the stratum ($C_h$). The summary is shown in Table 2.*
@@ -54,6 +83,21 @@ knitr::kable(tab2, row.names = F, caption = "Allocation Problem")
 
 1. *Determine the sample sizes for the optimal allocation.*
 2. *Determine the sample sizes for the proportional allocation.*
+
+**Solution:**
+
+1. Optimal allocation for fixed cost: $n_h \propto \frac{N_h S_h}{\sqrt{c_h}}$. 
+\begin{align*}
+\Rightarrow \quad n_h &= k \cdot \frac{N_h S_h}{\sqrt{c_h}} \\
+\text{Cost function } \Rightarrow \quad 1500 & = 250 + 5\cdot \sum_{h=1}^3 k \cdot \frac{N_h S_h}{\sqrt{c_h}} \\ 
+\Rightarrow \quad 250 & = k \cdot \sum_{h=1}^3 \frac{N_h S_h}{\sqrt{c_h}} \\ 
+\sum_{h=1}^3 \frac{N_h S_h}{\sqrt{c_h}} & = 33541.02 \\
+\Rightarrow \quad k & = 0.00745356 \\ 
+\Rightarrow \quad n_1 = 66.\bar{6} = 67,& \quad n_2 = 83.\bar{3} = 83 \quad n_3 = 100
+\end{align*}
+2. Proportional allocation: $n_h \propto N_h$. Using the fact that $\sum_{h = 1}^3 n_h = 250$ from the cost function, we have $250 = \sum_{h=1}^3 k\cdot N_h$. $\sum_{h=1}^3 N_h = 9000$, so $k = 250/9000$. Thus, $n_1 = \frac{250\cdot 500}{9000} = 13.\bar{8} = 14$, $n_2 = \frac{250\cdot 2500}{9000} = 69.\bar{4} = 69$, and $n_3 = \frac{250\cdot 6000}{9000} = 166.\bar{6} = 167$.
+
+\clearpage
 
 ## Problem 4
 
@@ -67,6 +111,79 @@ $$\sum_{k=1}^N k = \frac{N(N+1)}{2}, \quad \sum_{k=1}^N k^2 = \frac{N(N+1)(2N+1)
 4. *Under the following superpopulation model $$E_{\zeta}(y_k) = \beta_{0} + \beta_1 k, \quad V_{\zeta}(y_k) = \sigma^2$$
 Compute $E_{\zeta}(V_{SI}(\bar{y})), E_{\zeta}(V_{SY}(\bar{y})),$ and $E_{\zeta}(V_{ST}(\bar{y}))$. Under which of these designs does $\bar{y}$ have the smallest expected variance?*  
 
+**Solution:**
+
+1. First, I compute the population mean, $\bar{y}_U$ and population variance, $S^2_U$:
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+\bar{y}_U & = \frac{1}{N} \sum_{i = 1}^N y_i \\
+  & = \frac{1}{N} \sum_{i = 1}^N \frac{i}{N} \\
+  & = \frac{1}{N^2} \sum_{i = 1}^N i \\
+\bar{y}_U & = \frac{N+1}{2N}
+\end{align*}
+\end{minipage}
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+S^2_U & = \frac{1}{N-1} \sum_{i = 1}^N (y_i - \bar{y}_U)^2 \\
+  & = \frac{1}{N-1} \left(\sum_{i = 1}^N y_i^2 - N\bar{y}_U^2 \right) \\
+  & = \frac{1}{N-1} \left(\sum_{i = 1}^N \frac{i^2}{N^2} - N(\frac{N+1}{2N})^2 \right)\\
+  & = \frac{1}{N-1} \left(\frac{N(N+1)(2N+1)}{6N^2} - \frac{(N+1)^2}{4N} \right) \\
+  & = \frac{1}{N-1} \left(\frac{2(N+1)(2N+1) - (N+1)^2}{12N} \right) \\ 
+  & = \frac{1}{12N(N-1)} (N^2-1) \\
+S^2_U   & = \frac{N+1}{12N}
+\end{align*}
+\end{minipage}
+
+$$V_{SI}(\bar{y}) = \frac{1}{n}(1-\frac{n}{N})S^2_U = \frac{1}{n}(1-\frac{n}{N})\frac{N+1}{12N}$$
+2. First, I compute the sample mean, $\bar{y}_r$ where $r \sim$ DUnif$(1,2, \dots, m)$ is the starting index in the systematic sample. Also, let $a_k$ denote the index in $\{1, \dots , N\}$ in the sample for $k = 1, \dots, n$. I also compute $SSB$, the between sum of squares for the variance between systematic samples. 
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+\bar{y}_r & = \frac{1}{n} \sum_{k = 1}^n  y_{a_k} \quad \text{where } a_k = r + (k-1)m \\
+  & = \frac{1}{Nn} \sum_{k = 1}^n  r + (k-1)m  \\
+  & = \frac{1}{Nn} \left(nr + \sum_{k = 1}^n (k-1)m  \right)  \\ 
+  & =  \frac{1}{Nn} \left(nr + m\frac{(n-1)n}{2} \right) \\
+\bar{y}_r & = \frac{r}{N} + \frac{m(n-1)}{2N}
+\end{align*}
+\end{minipage}
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+SSB & = n \sum_{r=1}^m (\bar{y}_r - \bar{y}_U)^2 \\
+    & = n  \sum_{r=1}^m (\frac{r}{N} + \frac{m(n-1)}{2N} -  \frac{N+1}{2N})^2 \\
+    & = n  \sum_{r=1}^m (\frac{2r + mn - m -mn - 1}{2N})^2 \\
+    & = \frac{n}{4N^2} \sum_{r=1}^m (2r - (m +1))^2 \\ 
+    & = \frac{n}{4N^2} \frac{m(m^2 - 1)}{3} \\
+    & = \frac{N^2/n^2 - 1}{12N}
+\end{align*}
+\end{minipage}
+
+$$V_{SY}(\bar{y}) = \frac{1}{N^2} \cdot N \cdot SSB = \frac{n}{4N^3} \frac{m(m^2 - 1)}{3} = \frac{N(m^2-1)}{12N^3} = \frac{m^2-1}{12N^2} = \frac{N^2 - n^2}{12n^2N^2}$$
+3. First, I calculate SST and SSW: 
+
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+SST = \sum_{i = 1}^N (y_i - \bar{y}_U)^2 & = \sum_{i = 1}^N y_i^2 - N \bar{y}_U^2 \\
+    & = \frac{1}{N^2} \cdot \frac{N(N+1)(2N+1)}{6} - \frac{N(N+1)^2}{4N^2} \\
+    & = \frac{N^2 - 1}{12N}
+\end{align*}
+\end{minipage}
+\begin{minipage}{.49\textwidth}
+\begin{align*}
+SSW & = SST - SSB \\ 
+    & = \frac{N^2 - 1}{12N} - \frac{N^2/n^2 - 1}{12N} \\
+    & = \frac{N^2(1-1/n^2)}{12N}
+\end{align*}
+\end{minipage}
+$$V_{ST}(\bar{y}) = \sum_{h = 1}^n V(\bar{y}_h) = \sum_{h = 1}^n \frac{1}{n_h}(1-\frac{n_h}{N_h}) S^2_{U_h} = (1- \frac{N}{n}) \sum_{h = 1}^n \sum_{k = 1}^m (y_{hk}-\bar{y}_{U_h})^2 = (1 -\frac{N}{n})\cdot SSW = \frac{N^2 - n^2}{12n^2N^2}$$
+4. For each scenario, $E_{\zeta}[V(\bar{y})] = \frac{1}{n} \cdot \left(1 - \frac{n}{N}\right)\cdot S^2_e$ where $S^2_e$ is the variance of the residuals, $\check{e}_k = \check{y}_k - E(y_k)$ under each of the sampling strategies. 
+\begin{align*}
+E_{\zeta}[V(\bar{y})_{SI}] & = \frac{1}{n} \cdot \left(1 - \frac{n}{N}\right) \cdot \left(\sigma^2 + \beta_1^2 \frac{N(N+1)}{12}\right) \\
+E_{\zeta}[V(\bar{y})_{SY}] & = \frac{1}{n} \cdot \left(1 - \frac{n}{N}\right) \cdot \left(\sigma^2 + \beta_1^2 \frac{N(N+n)}{12n}\right) \\
+E_{\zeta}[V(\bar{y})_{ST}] & =\frac{1}{n} \cdot \left(1 - \frac{n}{N}\right) \cdot \left(\sigma^2 + \beta_1^2 \frac{N(N+n)}{12n^2}\right)
+\end{align*}
+Thus, as the differing term of these three is of $O(n^{-2})$, the smallest expected variance is for stratified sampling under the superpopulation model. 
+
+\clearpage
+
 ## Problem 5
 
 *A supermarket chain has 450 stores spread over 32 cities. A company official wants to estimate the proportion of stores in the chain that do not meet a specified cleanliness criterion. Because of travel costs, she decides to use a two-stage SISI element sampling design to select 4 cities at the first stage and (approximately) half the stores within each of the 4 cities at the second stage. The data collected are in the following table:*
@@ -79,3 +196,20 @@ knitr::kable(tab3, row.names = F)
 1. *Write down a HT-estimator for the proportion of stores not meeting the cleanliness criterion, and compute its value.*
 2. *Write down a variance estimator for the estimator in (1) and calculate its value. You may only need to calculate the fist term which normally accounts for 98% of the total variation (i.e. use the simplified version of the variance estimator).*
    
+**Solution:**
+
+1. Let $y_{ik} = 1$ if store $k$ in city $i$ did NOT meet the cleanliness criterion, and $y_{ik} = 0$ otherwise. We know the total population size, $N=450$. So, a HT-estimator for the proportion of stores not meeting the criterion is $\hat{p} = \frac{\hat{t}_{HT}}{N}$, where $$\hat{t}_{HT} = \sum_{i = 1}^4 \sum_{k = 1}^{m_i} \frac{y_{ik}}{\pi_{k|i}\pi_{Ii}},$$
+and $\pi_{Ii} = \frac{4}{32}$, and $\pi_{k|i} = \frac{m_i}{A_i}$. ($\pi_{k|1} = \frac{13}{25}$, $\pi_{k|2} = \pi_{k|3} = \pi_{k|4} = \frac{1}{2}$) The value of the estimator of the total is 
+$$\hat{t}_{HT} = \sum_{i = 1}^4 \sum_{k = 1}^{m_i} \frac{y_{ik}}{\pi_{k|i}\pi_{Ii}} = 3\cdot \frac{1}{\frac{13}{25}\cdot \frac{1}{8}} +  1\cdot \frac{1}{\frac{1}{2}\cdot \frac{1}{8}} +  4\cdot \frac{1}{\frac{1}{2}\cdot \frac{1}{8}} + 2\cdot \frac{1}{\frac{1}{2}\cdot \frac{1}{8}} = 158.15.$$
+So, $\hat{p} = \frac{\hat{t}_{HT}}{N} = \frac{158.15}{450} = 0.3515$.
+
+2. A formula for the variance estimator for $\hat{p}$ that accounts for approximately 98% of the total variation is
+$$\hat{V}(\hat{p}) = \frac{1}{N^2} \hat{V}(\hat{t}_{{HT}}) \approx  \frac{1}{N^2}  \frac{N_I^2}{n_I} (1-\frac{n_I}{N_I})\cdot \frac{1}{n_I-1} \sum_{i = 1}^{n_I}
+(t_i - \bar{\hat{t}}_{HT})^2$$
+where $\bar{\hat{t}}_{HT} = \frac{1}{n_I}\sum_{k = 1}^{m_i} \frac{y_{ik}}{\pi_{k|i}} = \frac{1}{4} \cdot\left(3 \cdot \frac{25}{15} + 2\cdot (1 + 4 + 2)\right) = 4.942$ and $t_i = \frac{\sum_k y_{ik}}{\pi_{k|i}}$. Thus, the value of this variance estimator for this problem is
+\begin{align*}
+\hat{V}(\hat{p}) & \approx  \frac{1}{N^2}  \frac{N_I^2}{n_I} (1-\frac{n_I}{N_I})\cdot \frac{1}{n_I-1} \sum_{i = 1}^4 (t_i - \bar{\hat{t}}_{HT})^2 \\
+    & =  \frac{1}{450^2} \frac{32^2}{4} (1-\frac{4}{32})\cdot \frac{1}{4-1} \sum_{i = 1}^4 (t_i - 4.942)^2 \\ 
+    & = 0.000369 \cdot \left((3\cdot \frac{25}{13} - 4.942)^2 + (2 - 4.942)^2 + (8 - 4.942)^2 + (4 - 4.942)^2\right) \\
+    & = 0.000369 \cdot 19.5784 = 0.00721
+\end{align*}
