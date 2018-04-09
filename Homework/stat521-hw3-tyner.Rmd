@@ -1,0 +1,146 @@
+---
+title: "STAT 521 - Homework #3"
+author: "Sam Tyner"
+date: "4/12/2018"
+header-includes:
+   - \usepackage{amsthm}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+*In a population of 10,000 businesses, we want to estimate the average sales $\bar{Y}$ . For that, we sample $n = 100$ businesses using simple random sampling. Furthermore, we have at our disposal the auxiliary information "number of employees", denoted by $x$, for each business. It is known that $\bar{X} = 50$ in the population. From the sample, we computed the following statistics:*
+
+- *$\bar{y}_n = 5.2 \times 10^6$ (average sales in the sample)*
+- *$\bar{x}_n = 45$ employees (sample mean)*
+- *$s^2_y = 25 \times 10^{10}$ (sample variance of $y_k$)*
+- *$s^2_x = 15$ (sample variance of $x_k$)*
+- *$r = 0.8$ (sample correlation coefficient between $x$ and $y$)*
+
+*Answer the following questions.*
+
+1. *Compute a 95% confidence interval for $\bar{Y}$ using the ratio estimator*.
+2. *Compute a 95% confidence interval for $\bar{Y}$ using the regression estimator based on the simple linear regression of $y$ on $x$ (with intercept).*
+
+**Solution:**
+```{r code1, echo = FALSE}
+sy2 <- 25 * 10^10
+sx2 <- 15 
+sx <- sqrt(sx2)
+sy <- sqrt(sy2)
+Rhat <- ( 5.2 * 10^6 ) / 45
+n <- 100
+N <- 10000
+f <- n/N
+r <- .8 
+sxy <- r * sx * sy
+ybarhatr <- 50 * 5.2 * 10^6 / 45
+
+Vyhatr <- N^2 * ((1 - f)/n ) * (sy2 + Rhat^2 * sx2 - 2 * Rhat * sxy)
+Vyhatbarr <- Vyhatr/N^2
+
+lowCI <- ybarhatr - 1.96 * sqrt(Vyhatbarr)
+highCI <- ybarhatr + 1.96 * sqrt(Vyhatbarr)
+
+bhat <- sxy / sx2
+ahat <- 5.2 * 10^6 - bhat * 45
+ybarreg <-  5.2 * 10^6 + (50-45) * bhat
+
+vyreg <- 1/n *(1- f) * sy2 * (1 - r^2)
+lowCI2 <- ybarreg - 1.96 * sqrt(vyreg)
+highCI2 <- ybarreg + 1.96 * sqrt(vyreg)
+
+```
+
+
+1. $\hat{\bar{Y}}_r = \bar{X} \cdot \frac{\bar{y}_n}{\bar{x}_n} = 50 \cdot \frac{5.2 \times 10^6}{45} = 5.78 \times 10^6$. See variance derivation below. 95% CI: $\hat{\bar{Y}}_r \pm 1.96 \cdot \sqrt{\hat{V}(\hat{\bar{Y}}_r)} \Rightarrow (5.72 \times 10^6, 5.84 \times 10^6)$.   
+\begin{align*}
+\hat{V}(\hat{\bar{Y}}_r) & = \frac{1}{N^2} \hat{V}(\hat{Y}_r)  \\
+  & = \frac{1}{n} - \frac{1}{N} \left[s^2_y + \hat{R}^2 \cdot s^2_x - 2\hat{R} s_{xy} \right] \\
+  & = \left(\frac{1}{100} - \frac{1}{10000} \right) \left[25 \times 10^{10} + \left(\frac{5.2 \times 10^6}{45}\right)^2 \cdot 15 - 2 \cdot \frac{5.2 \times 10^6}{45} \cdot .8 \cdot \sqrt{25 \times 10^{10}} \cdot \sqrt{15} \right] \\ 
+  & = 0.0099 \cdot 92260502514 \\ 
+  & = 9.13 \times 10^8
+\end{align*}
+2. Model: $y_i = \hat{b}_0 + \hat{b}_1\cdot x_i$, $\hat{b}_1 = \frac{s_{xy}}{s_x^2}$ and $\hat{b}_0 = \bar{y_n} - \hat{b}_1 \cdot \bar{x}_n$. Thus, $\hat{\mathbf{b}} = (\hat{b}_0, \hat{b}_1) = (5.52 \times 10^5 , 1.03 \times 10^5)$. The regression estimator is $\hat{\bar{Y}}_{reg} = \bar{Y}_{HT} + (\bar{\mathbf{X}} - \bar{\mathbf{X}}_{HT})\hat{\mathbf{b}}$. Since the design is SI, this simplifies to $\hat{\bar{Y}}_{reg} = \bar{y}_n + ([1 \quad \bar{X}]' - [1 \quad \bar{x}_n]' )\hat{\mathbf{b}} = \bar{y}_n  + (\bar{X} - \bar{x}_n) \hat{b}_1 = 5.2 \times 10^6 + (50 - 45)\cdot 1.03 \times 10 ^5 = 5.72 \times 10^6$. See variance calculation below. The 95% CI is: $\hat{\bar{Y}}_{reg} \pm 1.96 \cdot \sqrt{\hat{V}(\hat{\bar{Y}}_{reg})} \Rightarrow (5.66 \times 10^6, 5.77 \times 10^6)$.
+\begin{align*}
+\hat{V}(\hat{\bar{Y}}_{reg}) & \approx \frac{1}{n}(1 - f) \cdot s_e^2 \\
+  & = \frac{1}{n}(1 - f) \cdot s_y^2 (1-r^2) \\
+  & = 0.0099 \cdot 25 \times 10^{10} \cdot (1- 0.8^2) \\
+  & = 8.91 \times 10^8
+\end{align*}
+
+## Problem 2
+
+*Assume that a simple random sample of size $n$ is selected from a population of size $N$ and $(x_i,y_i)$ are observed in the sample. In addition, we assume that the population mean of $x$, denoted by $\bar{X}$, is known.*
+
+1. *Use a Taylor linearization method to find the variance of the product estimator $\frac{\bar{x}\bar{y}}{\bar{X}}$, where $(\bar{x},\bar{y})$ is the sample mean of $(x_i,y_i)$*
+2. *Find the condition that this product estimator has a smaller variance than the sample mean $\bar{y}$.*
+3. *Prove that if the population covariance of $x$ and $y$ is zero, then the product estimator is less efficient than $\bar{y}$.*
+
+**Solution:**
+
+1. Let $f(x,y) = \frac{xy}{\bar{X}}$ where $\bar{X}$ is known and constant. Needed derivatives of this function for the linearization are:
+$$\frac{\partial f(x,y)}{\partial x} = \frac{y}{\bar{X}} \quad \text{and} \quad \frac{\partial f(x,y)}{\partial y} = \frac{x}{\bar{X}}$$ 
+Let $\bar{Y}_{prod} = \frac{\bar{x}\bar{y}}{\bar{X}}$. Let $x_0 = \bar{X}$ and let $y_0 = \bar{Y}$. The Taylor linearization is: 
+\begin{align*}
+\bar{Y}_{prod} & \approx f(x_0, y_0) + (x-x_0)  \cdot \left. \frac{\partial f(x,y)}{\partial x}\right|_{x = x_0, y = y_0} + (y - y_0) \cdot \left. \frac{\partial f(x,y)}{\partial y}\right|_{x = x_0, y = y_0} \\
+ & = \frac{\bar{X}\bar{Y}}{\bar{X}} + \frac{\bar{Y}}{\bar{X}}(x-\bar{X}) +  \frac{\bar{X}}{\bar{X}} (y- \bar{Y}) \\ 
+ & = \bar{Y} + \bar{R} (\bar{x}_n - \bar{X}) + (\bar{y}_n - \bar{Y}) \quad \textit{(substitute $\bar{x}_n, \bar{y}_n$ for $x,y$)} \\
+\text{Thus the variance is:} \quad V(\bar{Y}_{prod}) & \approx Var(\bar{Y} + \bar{R} (\bar{x}_n - \bar{X}) + (\bar{y}_n - \bar{Y})) \\
+& = V(\bar{R}\bar{x}_n + \bar{y}_n) \\ 
+& = \bar{R}^2 \cdot V(\bar{x}_n) + V(\bar{y}_n) + 2\bar{R}\cdot Cov(\bar{x}_n, \bar{y}_n) \\ 
+& = \frac{1-f}{n} \cdot (\bar{R}^2\cdot S_x^2 + S_y^2 + 2 \bar{R} S_{xy}) 
+\end{align*}
+
+2. $V(\bar{y}) = \frac{1-f}{n} \cdot S_y^2$. 
+\begin{align}
+V(\bar{y}) & > V(\bar{Y}_{prod}) \\
+\Rightarrow  \frac{1-f}{n} \cdot S_y^2 & > \frac{1-f}{n} \cdot (\bar{R}^2\cdot S_x^2 + S_y^2 + 2 \bar{R} S_{xy}) \\ 
+\Rightarrow 0 & > \bar{R}^2\cdot S_x^2 + 2 \bar{R} S_{xy} \\ 
+\Rightarrow S_{xy} & < -\frac{1}{2} \cdot S_x^2 \bar{R} \quad \textit{(Assuming $\bar{R} > 0$)} \\ 
+\Rightarrow \rho & < -\frac{1}{2} \cdot \frac{\bar{Y}}{\bar{X}} \frac{S_x}{S_y}  \quad \textit{(where $\rho$ is the correlation between $X, Y$)}\\ 
+\Rightarrow \rho & < -\frac{1}{2} \cdot \frac{cv(x)}{cv(y)} \quad \textit{where  $cv$ is the coefficient of variation}
+\end{align}
+In order for the product estimator to have a smaller variance than the sample mean, the correlation between $X,Y$ must be negative, and less than half the ratio of the coefficient of variations of $X$ and $Y$.
+
+3. If $S_{xy} = 0$, then line (3) from Problem 2.2 becomes $0 > \bar{R}^2\cdot S_x^2$. This implies that one of $\bar{R}^2$ or $S_x^2$ is negative, which can never be true. Thus, if $S_{xy} = 0$, $V(\bar{y})  << V(\bar{Y}_{prod})$. 
+
+
+## Problem 3
+
+*We are interested in estimating the proportion of married graduate students at ISU with population size $N = 10,000$. Suppose that we have a simple random sample of size $n = 100$ and the result is as follows.*
+
+|Status | Male | Female |
+|:------|:----:|:------:|
+|Married | 25 | 20 |
+|Single | 25 | 30 |
+
+*It is known that the population proportion of male students is 60%*. 
+
+1. *Compute the confidence interval for the porportion of married students at ISU using HT estimation.*
+2. *Compute the confidence interval for the porportion of married students at ISU using the post-stratified estimator with gender being the poststratum.*
+
+**Solution:**
+
+1. Let $Z_i = 1$ if student $i$ is married, and $Z_i =0$ if student $i$ is unmarried. The HT estimate of the population proportion ($P_U$) is $p_s = \frac{1}{n} \sum_{i \in S} Z_i = \frac{45}{100}= 0.45$. Then, $\hat{V}(p_s) = (1- f) \frac{p_s (1 - p_s)}{n} = 0.99 \cdot \frac{.45 \cdot .55}{100} = 0.00245$. 95% CI: $p_s \pm 1.96 \sqrt{\hat{V}(p_s)} \Rightarrow$ $0.45 \pm 1.96 \cdot 0.0495 = (0.353,0.547)$. 
+2. Let $p_{pos}$ denote the poststratification estimate, and let $\hat{p}_g$ denote the the sample proportion of married students for group $g$. Then, $p_{pos} = \sum_{g=1}^G \frac{N_g}{N} \hat{p}_g = 0.6 \cdot 0.5+ 0.4 \cdot 0.4 = 0.46$. 
+The estimate of variance formula for poststratification is $\hat{V}(p_{pos}) = \frac{1}{N^2} \sum_{g=1}^G N_g^2 \hat{V}(\hat{p}_g)$ where $\hat{V}(\hat{p}_g) = (1-f_g)\frac{\hat{p}_g(1-\hat{p}_g)}{n_g}$. The table below lists the necessary values for the variance calculation. 
+
+| $g$ | $N_g$ | $n_g$ | $f_g$ | $\hat{p}_g$ | $\hat{V}(\hat{p}_{g})$ |
+|:----|:-----:|:-----:|:-----:|:-----------:|:----------------------:|
+| 1   | 6,000 | 50    | 1/120 | 0.5         | 0.00496 |
+| 2   | 4,000 | 50    | 1/80  | 0.4         | 0.00474 |
+
+```{r propvar, echo=FALSE}
+N <- 10000
+N1 <- 6000
+N2 <- 4000
+vp1 <- 0.00496
+vp2 <- 0.00474
+varppos <- 1/N^2 * (N1^2 * vp1 + N2^2 * vp2)
+```
+$\hat{V}(p_{pos}) = \frac{1}{10000^2} \left[ 6000^2 \cdot 0.00496 +  4000^2 \cdot 0.00474 \right] = 0.002544$. The 95% CI is given by $p_{pos} \pm 1.96\sqrt{\hat{V}(p_{pos})} \Rightarrow (0.361, 0.559)$. 
